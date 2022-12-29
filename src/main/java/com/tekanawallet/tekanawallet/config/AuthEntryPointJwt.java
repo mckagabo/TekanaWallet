@@ -1,6 +1,8 @@
 package com.tekanawallet.tekanawallet.config;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +37,7 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint{
 	    body.put("error", "Unauthorized");
 	    body.put("message", authException.getMessage());
 	    body.put("path", request.getServletPath());
+	    body.put("time:", new Date());
 
 	    final ObjectMapper mapper = new ObjectMapper();
 	    mapper.writeValue(response.getOutputStream(), body);

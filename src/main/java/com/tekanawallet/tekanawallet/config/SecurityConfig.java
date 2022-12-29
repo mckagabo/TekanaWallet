@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.tekanawallet.tekanawallet.registration.service.UserDetailsImpl;
 
 @Configuration
-
+@EnableWebSecurity
 public class SecurityConfig {
 
 	 @Autowired
@@ -24,10 +25,10 @@ public class SecurityConfig {
 	 
 	 @Autowired
 	 private AuthEntryPointJwt unauthorizedHandler;
-	 @Bean
-	 public JwtRequestFilter authenticationJwtTokenFilter() {
-		 return new JwtRequestFilter();
-	 }
+	 
+	 
+	 @Autowired
+	private JwtRequestFilter jwtRequestFilter;
 	 
 	  @Bean
 	  public DaoAuthenticationProvider authenticationProvider() {
@@ -50,19 +51,23 @@ public class SecurityConfig {
 	
 	  @Bean
 	  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()  
-	    .authorizeHttpRequests((requests) -> requests
-				.requestMatchers("/", "/hi").permitAll()
-				.anyRequest().authenticated()
-				)
-	    .logout((logout) -> logout.permitAll());
-	    
-	    http.authenticationProvider(authenticationProvider());
-	    http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-	
-	    return http.build();
+		 return http
+				 .csrf(csrf->csrf.disable())
+				 .authorizeHttpRequests(auth->{
+					 auth.requestMatchers("/","/api/auth/signup").permitAll();
+					 auth.requestMatchers("/","/api/auth/signin").permitAll();
+					 auth.requestMatchers("/","/hi").permitAll();
+					 auth.anyRequest().authenticated();
+				 }) 
+		         .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+		         .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+			     .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+				 .build();
+				 
+		  
 	  }
+	  
+	   
 	
 	
 }

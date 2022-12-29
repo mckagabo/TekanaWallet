@@ -27,11 +27,36 @@ public class JwtRequestFilter extends OncePerRequestFilter{
 	
 	@Autowired
 	 private UserDetailsImpl userDetailsService;
+
 	
-	 @Override
+	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		 final String requestTokenHeader = request.getHeader("Authorization");
+		 // look for Bearer auth header
+        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header == null || !header.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+		
+        final String token = header.substring(7);
+        final String username = jwtTokenUtil.getUsernameFromToken(token);
+        if (username == null) {
+            // validation failed or token expired
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+     // set user details on spring security context
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // continue with authenticated user
+        filterChain.doFilter(request, response);
+		/* final String requestTokenHeader = request.getHeader("Authorization");
 
 			String username = null;
 			String jwtToken = null;
@@ -44,7 +69,9 @@ public class JwtRequestFilter extends OncePerRequestFilter{
 				} catch (IllegalArgumentException e) {
 					System.out.println("Unable to get JWT Token");
 				} catch (ExpiredJwtException e) {
+					
 					System.out.println("JWT Token has expired");
+					
 				}
 			} else {
 				logger.warn("JWT Token does not begin with Bearer String");
@@ -67,7 +94,7 @@ public class JwtRequestFilter extends OncePerRequestFilter{
 					// Spring Security Configurations successfully.
 					SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 				}
-			}
+			}*/
 	}
 
 	

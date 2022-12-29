@@ -2,6 +2,8 @@ package com.tekanawallet.tekanawallet.dto;
 
 import java.util.UUID;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -18,6 +20,15 @@ public class UserDto {
 	    private String email;
 	    @NotEmpty(message = "Password should not be empty")
 	    private String password;
+	    
+	    @NotEmpty
+	    private String userName;
+	    
+	    @DateTimeFormat(pattern="dd/MMM/yyyy") 
+	    private String dob;
+	    
+	    @NotEmpty
+	    private String gender;
 	    
 		public UUID getId() {
 			return id;
@@ -49,6 +60,24 @@ public class UserDto {
 		public void setPassword(String password) {
 			this.password = password;
 		}
-
+		public String getUserName() {
+			return userName;
+		}
+		public void setUserName(String userAccount) {
+			this.userName = userAccount;
+		}
+		public String getDob() {
+			return dob;
+		}
+		public void setDob(String dob) {
+			this.dob = dob;
+		}
+		public String getGender() {
+			return gender;
+		}
+		public void setGender(String gender) {
+			this.gender = gender;
+		}
+     
 	    
 }
